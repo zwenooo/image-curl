@@ -1,0 +1,7 @@
+interface:
+  display_name: "Image Curl"
+  short_description: "Generate local images through curl"
+  default_prompt: "Use $image-curl to generate a local image file through the configured Codex image endpoint with curl."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,7 @@
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.metadata.json
+cat.txt
+.DS_Store
