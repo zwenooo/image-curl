@@ -95,6 +95,14 @@ $image-curl 画一只猫咪，保存为 ./cat.png，使用环境变量 IMAGE_CUR
 prompt, output, size, quality, format, moderation, background, metadata, overwrite, dry_run, base_url, api_key
 ```
 
+`size` 可以写成 `auto` 或任意上游支持的 `宽x高`，例如：
+
+```text
+$image-curl prompt="新疆旅游宣传海报" output="./xinjiang.png" size="1200x1800"
+```
+
+不要为了适配固定尺寸强行裁剪；如果用户给出具体宽高，就按原样传给接口。如果用户只说 1K、2K、4K 或横版/竖版，Codex 应按对应档位和方向选择合适宽高。
+
 ### 直接运行脚本
 
 ```bash
@@ -175,7 +183,7 @@ API key 读取顺序：
 --prompt-file FILE     从文件读取提示词
 --output FILE          输出图片路径，必填
 --model NAME           默认 gpt-image-2
---size SIZE            1024x1024, 1536x1024, 1024x1536, auto
+--size SIZE            auto 或任意上游支持的 宽x高，例如 1024x1024, 1344x768, 1200x1800
 --quality VALUE        默认 auto
 --format FORMAT        png, jpeg, webp
 --moderation VALUE     默认 auto
@@ -304,6 +312,14 @@ Common fields you can express in chat:
 prompt, output, size, quality, format, moderation, background, metadata, overwrite, dry_run, base_url, api_key
 ```
 
+`size` can be `auto` or any upstream-supported `WIDTHxHEIGHT`, for example:
+
+```text
+$image-curl prompt="Xinjiang travel poster" output="./xinjiang.png" size="1200x1800"
+```
+
+Do not force fixed-size cropping. If the user gives exact dimensions, pass them through unchanged. If the user only asks for 1K, 2K, 4K, wide, or tall output, Codex should choose dimensions in that tier while preserving the requested orientation.
+
 ### Running The Script Directly
 
 ```bash
@@ -384,7 +400,7 @@ Do not commit real API keys to the repository.
 --prompt-file FILE     read prompt from file
 --output FILE          output image path, required
 --model NAME           default: gpt-image-2
---size SIZE            1024x1024, 1536x1024, 1024x1536, auto
+--size SIZE            auto or any upstream-supported WIDTHxHEIGHT, for example 1024x1024, 1344x768, 1200x1800
 --quality VALUE        default: auto
 --format FORMAT        png, jpeg, webp
 --moderation VALUE     default: auto

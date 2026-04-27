@@ -9,7 +9,7 @@ Usage:
 
 Options:
   --model NAME          Image model. Default: gpt-image-2
-  --size SIZE           1024x1024, 1536x1024, 1024x1536, or auto. Default: 1024x1024
+  --size SIZE           auto or WIDTHxHEIGHT, for example 1024x1024, 1344x768, 2048x1152
   --quality VALUE       Default: auto
   --format FORMAT       png, jpeg, or webp. Default: png
   --moderation VALUE    Default: auto
@@ -71,7 +71,8 @@ done
 [[ -n "$model" ]] || die "--model must not be empty."
 [[ -n "$size" ]] || die "--size must not be empty."
 [[ -n "$format" ]] || die "--format must not be empty."
-[[ "$size" =~ ^(1024x1024|1536x1024|1024x1536|auto)$ ]] || die "--size must be one of: 1024x1024, 1536x1024, 1024x1536, auto."
+size="${size,,}"
+[[ "$size" == "auto" || "$size" =~ ^[1-9][0-9]{1,5}x[1-9][0-9]{1,5}$ ]] || die "--size must be auto or WIDTHxHEIGHT, for example 1024x1024, 1344x768, 2048x1152."
 [[ "$format" =~ ^(png|jpeg|jpg|webp)$ ]] || die "--format must be png, jpeg, jpg, or webp."
 [[ "$timeout" =~ ^[0-9]+$ && "$timeout" -gt 0 ]] || die "--timeout must be a positive integer."
 

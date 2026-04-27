@@ -30,12 +30,21 @@ Do not use this skill for web image search, SVG/vector-only work, or image editi
 
 ## Size selection
 
-If the user did not specify a size, choose:
+The upstream supports arbitrary `WIDTHxHEIGHT` sizes within its available 1K, 2K, and 4K output budgets. Do not restrict requests to a fixed whitelist and do not locally crop or resize after generation.
 
-- `1536x1024` for clearly wide outputs: 横图, 横版, banner, hero, landscape wallpaper, 全景, 宽屏, YouTube thumbnail
-- `1024x1536` for clearly tall outputs: 竖图, 竖版, 海报, 手机壁纸, poster, book cover
-- `1024x1024` for generic images, avatars, icons, square compositions, or unclear orientation
-- `auto` only when the user explicitly asks for automatic, original-ratio, or adaptive sizing
+Selection rules:
+
+- If the user gives an exact size such as `1344x768`, `1200x1600`, or `2048x1152`, pass it exactly.
+- If the user gives only an aspect/orientation, choose dimensions that preserve that intent instead of forcing square output.
+- If the user asks for 1K, 2K, or 4K, choose dimensions in that output tier while preserving the requested aspect ratio.
+- If no size, tier, or orientation is specified, use `1024x1024`.
+- Use `auto` only when the user explicitly asks for automatic, original-ratio, or adaptive sizing.
+
+Examples:
+
+- wide poster or banner: `1536x864`, `1600x900`, or another suitable wide size
+- vertical poster or phone wallpaper: `900x1600`, `1024x1536`, or another suitable tall size
+- square avatar/icon: `1024x1024`
 
 ## Workflow
 
@@ -81,7 +90,7 @@ $image-curl 画一只猫咪，保存为 ./cat.png，使用环境变量 IMAGE_CUR
 
 Prefer environment variables for secrets. Avoid asking the user to put a real API key in chat unless they explicitly choose to do so.
 
-Supported chat-level fields map to script flags: `prompt`, `output`, `size`, `quality`, `format`, `moderation`, `background`, `metadata`, `overwrite`, `dry_run`, `base_url`, and `api_key`.
+Supported chat-level fields map to script flags: `prompt`, `output`, `size`, `quality`, `format`, `moderation`, `background`, `metadata`, `overwrite`, `dry_run`, `base_url`, and `api_key`. `size` can be `auto` or any upstream-supported `WIDTHxHEIGHT`; keep the user's requested aspect ratio.
 
 Useful options:
 
