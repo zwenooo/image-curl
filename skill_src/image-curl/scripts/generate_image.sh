@@ -9,7 +9,7 @@ Usage:
 
 Options:
   --model NAME          Image model. Default: gpt-image-2
-  --size SIZE           auto or WIDTHxHEIGHT, for example 1024x1024, 1344x768, 2048x1152
+  --size SIZE           auto or WIDTHxHEIGHT. Longest edge <= 3840, aspect ratio <= 3:1
   --quality VALUE       Default: auto
   --format FORMAT       png, jpeg, or webp. Default: png
   --moderation VALUE    Default: auto
@@ -72,7 +72,17 @@ done
 [[ -n "$size" ]] || die "--size must not be empty."
 [[ -n "$format" ]] || die "--format must not be empty."
 size="${size,,}"
-[[ "$size" == "auto" || "$size" =~ ^[1-9][0-9]{1,5}x[1-9][0-9]{1,5}$ ]] || die "--size must be auto or WIDTHxHEIGHT, for example 1024x1024, 1344x768, 2048x1152."
+if [[ "$size" != "auto" ]]; then
+  [[ "$size" =~ ^([1-9][0-9]*)x([1-9][0-9]*)$ ]] || die "--size must be auto or WIDTHxHEIGHT, for example 1024x1024, 1344x768, 2048x1152."
+  width="${BASH_REMATCH[1]}"
+  height="${BASH_REMATCH[2]}"
+  if (( width > 3840 || height > 3840 )); then
+    die "--size '$size' is not supported by the upstream: the longest edge must be less than or equal to 3840."
+  fi
+  if (( width > height * 3 || height > width * 3 )); then
+    die "--size '$size' is not supported by the upstream: the maximum supported aspect ratio is 3:1."
+  fi
+fi
 [[ "$format" =~ ^(png|jpeg|jpg|webp)$ ]] || die "--format must be png, jpeg, jpg, or webp."
 [[ "$timeout" =~ ^[0-9]+$ && "$timeout" -gt 0 ]] || die "--timeout must be a positive integer."
 

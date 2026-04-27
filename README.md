@@ -101,7 +101,13 @@ prompt, output, size, quality, format, moderation, background, metadata, overwri
 $image-curl prompt="新疆旅游宣传海报" output="./xinjiang.png" size="1200x1800"
 ```
 
-不要为了适配固定尺寸强行裁剪；如果用户给出具体宽高，就按原样传给接口。如果用户只说 1K、2K、4K 或横版/竖版，Codex 应按对应档位和方向选择合适宽高。
+不要为了适配固定尺寸强行裁剪；如果用户给出具体宽高且在上游范围内，就按原样传给接口。如果用户只说 1K、2K、4K 或横版/竖版，Codex 应按对应档位和方向选择合适宽高。
+
+当前已确认的上游限制：
+
+- 最长边必须小于等于 `3840`
+- 最大宽高比是 `3:1`
+- 例如横向长卷 4K 推荐用 `3840x1280`，不要用会被拒绝的 `4096x1024` 或 `3840x960`
 
 ### 直接运行脚本
 
@@ -183,7 +189,7 @@ API key 读取顺序：
 --prompt-file FILE     从文件读取提示词
 --output FILE          输出图片路径，必填
 --model NAME           默认 gpt-image-2
---size SIZE            auto 或任意上游支持的 宽x高，例如 1024x1024, 1344x768, 1200x1800
+--size SIZE            auto 或任意上游支持的 宽x高；最长边 <=3840，宽高比 <=3:1
 --quality VALUE        默认 auto
 --format FORMAT        png, jpeg, webp
 --moderation VALUE     默认 auto
@@ -318,7 +324,13 @@ prompt, output, size, quality, format, moderation, background, metadata, overwri
 $image-curl prompt="Xinjiang travel poster" output="./xinjiang.png" size="1200x1800"
 ```
 
-Do not force fixed-size cropping. If the user gives exact dimensions, pass them through unchanged. If the user only asks for 1K, 2K, 4K, wide, or tall output, Codex should choose dimensions in that tier while preserving the requested orientation.
+Do not force fixed-size cropping. If the user gives exact dimensions within the upstream limits, pass them through unchanged. If the user only asks for 1K, 2K, 4K, wide, or tall output, Codex should choose dimensions in that tier while preserving the requested orientation.
+
+Confirmed upstream limits:
+
+- longest edge must be less than or equal to `3840`
+- maximum supported aspect ratio is `3:1`
+- for a 4K horizontal long image, prefer `3840x1280`; avoid rejected sizes such as `4096x1024` or `3840x960`
 
 ### Running The Script Directly
 
@@ -400,7 +412,7 @@ Do not commit real API keys to the repository.
 --prompt-file FILE     read prompt from file
 --output FILE          output image path, required
 --model NAME           default: gpt-image-2
---size SIZE            auto or any upstream-supported WIDTHxHEIGHT, for example 1024x1024, 1344x768, 1200x1800
+--size SIZE            auto or any upstream-supported WIDTHxHEIGHT; longest edge <=3840, aspect ratio <=3:1
 --quality VALUE        default: auto
 --format FORMAT        png, jpeg, webp
 --moderation VALUE     default: auto

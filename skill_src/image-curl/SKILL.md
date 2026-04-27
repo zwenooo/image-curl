@@ -32,9 +32,15 @@ Do not use this skill for web image search, SVG/vector-only work, or image editi
 
 The upstream supports arbitrary `WIDTHxHEIGHT` sizes within its available 1K, 2K, and 4K output budgets. Do not restrict requests to a fixed whitelist and do not locally crop or resize after generation.
 
+Confirmed upstream constraints:
+
+- longest edge must be less than or equal to `3840`
+- maximum supported aspect ratio is `3:1`
+
 Selection rules:
 
-- If the user gives an exact size such as `1344x768`, `1200x1600`, or `2048x1152`, pass it exactly.
+- If the user gives an exact valid size such as `1344x768`, `1200x1600`, or `2048x1152`, pass it exactly.
+- If the user gives an invalid size, adjust only as much as needed to fit the constraints and preserve the user's intent. Example: `4096x1024` should become `3840x1280` for a 4K horizontal long image because the longest edge limit is `3840` and the aspect ratio limit is `3:1`.
 - If the user gives only an aspect/orientation, choose dimensions that preserve that intent instead of forcing square output.
 - If the user asks for 1K, 2K, or 4K, choose dimensions in that output tier while preserving the requested aspect ratio.
 - If no size, tier, or orientation is specified, use `1024x1024`.
@@ -43,6 +49,7 @@ Selection rules:
 Examples:
 
 - wide poster or banner: `1536x864`, `1600x900`, or another suitable wide size
+- 4K horizontal long image: `3840x1280`
 - vertical poster or phone wallpaper: `900x1600`, `1024x1536`, or another suitable tall size
 - square avatar/icon: `1024x1024`
 
