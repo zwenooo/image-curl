@@ -107,7 +107,7 @@ $image-curl 画一只猫咪，保存为 ./cat.png，使用环境变量 IMAGE_CUR
 可在聊天中表达的常用参数：
 
 ```text
-prompt, output, size, count, n, quality, format, moderation, background, metadata, overwrite, dry_run, base_url, api_key
+prompt, output, size, count, n, quality, format, output_compression, moderation, background, metadata, overwrite, dry_run, base_url, api_key
 ```
 
 一次请求生成多张时使用 `count` 或 `n`：
@@ -126,6 +126,12 @@ xinjiang-poster-4.png
 ```
 
 脚本会保存响应中 `data[]` 返回的所有图片。如果某个上游接受但忽略 `n` 参数，输出 JSON 会显示 `requested_count` 和 `returned_count`，用于识别这种不匹配。
+
+压缩 WebP 输出：
+
+```text
+$image-curl prompt="两张猫咪头像" output="./cat.webp" size="1024x1024" format="webp" output_compression=80 count=2
+```
 
 图生图还支持重复传 `image`：
 
@@ -253,6 +259,7 @@ API key 读取顺序：
 --count N, --n N       一次 API 请求返回的图片数量，默认 1，最大 10
 --quality VALUE        默认 auto
 --format FORMAT        png, jpeg, webp
+--output-compression N jpeg/webp 输出压缩级别，0-100
 --moderation VALUE     默认 auto
 --background VALUE     可选，例如 transparent 或 auto
 --metadata FILE        保存不含 b64_json 的响应 metadata
@@ -284,6 +291,7 @@ curl -sS --fail-with-body -X POST "$BASE_URL/v1/images/generations" \
     "n": 1,
     "quality": "auto",
     "output_format": "png",
+    "output_compression": 80,
     "moderation": "auto"
   }'
 ```
@@ -301,6 +309,7 @@ curl -sS --fail-with-body -X POST "$BASE_URL/v1/images/edits" \
   -F "n=1" \
   -F "quality=auto" \
   -F "output_format=png" \
+  -F "output_compression=80" \
   -F "moderation=auto" \
   -F "image[]=@photo1.png" \
   -F "image[]=@photo2.jpg"
@@ -417,7 +426,7 @@ $image-curl Draw a cat, save it as ./cat.png, and use IMAGE_CURL_BASE_URL and IM
 Common fields you can express in chat:
 
 ```text
-prompt, output, size, count, n, quality, format, moderation, background, metadata, overwrite, dry_run, base_url, api_key
+prompt, output, size, count, n, quality, format, output_compression, moderation, background, metadata, overwrite, dry_run, base_url, api_key
 ```
 
 Use `count` or `n` to request multiple images in one API call:
@@ -436,6 +445,12 @@ xinjiang-poster-4.png
 ```
 
 The script saves every image returned in `data[]`. If an upstream accepts but ignores the `n` parameter, the output JSON includes `requested_count` and `returned_count` so the mismatch is visible.
+
+Compressed WebP output:
+
+```text
+$image-curl prompt="Two cat avatars" output="./cat.webp" size="1024x1024" format="webp" output_compression=80 count=2
+```
 
 For image-to-image edits, repeat the `image` field:
 
@@ -563,6 +578,7 @@ Shared options for `generate_image.sh` and `edit_image.sh`:
 --count N, --n N       number of images returned by one API request, default 1, max 10
 --quality VALUE        default: auto
 --format FORMAT        png, jpeg, webp
+--output-compression N jpeg/webp output compression level, 0-100
 --moderation VALUE     default: auto
 --background VALUE     optional, for example transparent or auto
 --metadata FILE        save response metadata with b64_json omitted
@@ -594,6 +610,7 @@ curl -sS --fail-with-body -X POST "$BASE_URL/v1/images/generations" \
     "n": 1,
     "quality": "auto",
     "output_format": "png",
+    "output_compression": 80,
     "moderation": "auto"
   }'
 ```
@@ -611,6 +628,7 @@ curl -sS --fail-with-body -X POST "$BASE_URL/v1/images/edits" \
   -F "n=1" \
   -F "quality=auto" \
   -F "output_format=png" \
+  -F "output_compression=80" \
   -F "moderation=auto" \
   -F "image[]=@photo1.png" \
   -F "image[]=@photo2.jpg"

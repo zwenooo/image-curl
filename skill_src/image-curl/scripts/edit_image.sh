@@ -13,6 +13,8 @@ Options:
   --size SIZE           auto or WIDTHxHEIGHT. Edges multiple of 16, max edge 3840, ratio <= 3:1
   --quality VALUE       Default: auto
   --format FORMAT       png, jpeg, or webp. Default: png
+  --output-compression N
+                        Compression level for jpeg/webp outputs, 0-100
   --moderation VALUE    Default: auto
   --count N, --n N      Number of images to request in one API call. Default: 1, max: 10
   --metadata FILE       Save response metadata with b64_json omitted
@@ -37,6 +39,7 @@ output=""
 size="1024x1024"
 quality="auto"
 format="png"
+output_compression=""
 moderation="auto"
 count="1"
 metadata=""
@@ -57,6 +60,7 @@ while [[ $# -gt 0 ]]; do
     --size) size="${2:-}"; shift 2 ;;
     --quality) quality="${2:-}"; shift 2 ;;
     --format|--output-format) format="${2:-}"; shift 2 ;;
+    --output-compression) output_compression="${2:-}"; shift 2 ;;
     --moderation) moderation="${2:-}"; shift 2 ;;
     --count|--n) count="${2:-}"; shift 2 ;;
     --metadata|--metadata-path) metadata="${2:-}"; shift 2 ;;
@@ -97,6 +101,10 @@ fi
 [[ "$format" =~ ^(png|jpeg|jpg|webp)$ ]] || die "--format must be png, jpeg, jpg, or webp."
 if [[ "$format" == "jpg" ]]; then
   format="jpeg"
+fi
+if [[ -n "$output_compression" ]]; then
+  [[ "$output_compression" =~ ^[0-9]+$ && "$output_compression" -ge 0 && "$output_compression" -le 100 ]] || die "--output-compression must be an integer between 0 and 100."
+  [[ "$format" == "jpeg" || "$format" == "webp" ]] || die "--output-compression is only supported for jpeg or webp output."
 fi
 [[ "$timeout" =~ ^[0-9]+$ && "$timeout" -gt 0 ]] || die "--timeout must be a positive integer."
 [[ "$count" =~ ^[0-9]+$ && "$count" -ge 1 && "$count" -le 10 ]] || die "--count/--n must be an integer between 1 and 10."
@@ -292,24 +300,27 @@ else
 fi
 
 if [[ "$dry_run" -eq 1 ]]; then
-  python3 - "$endpoint" "$model" "$prompt" "$size" "$quality" "$format" "$moderation" "$count" "$output" "$metadata" "${resolved_images[@]}" <<'PY'
+  python3 - "$endpoint" "$model" "$prompt" "$size" "$quality" "$format" "$output_compression" "$moderation" "$count" "$output" "$metadata" "${resolved_images[@]}" <<'PY'
 import json
 import sys
 
-endpoint, model, prompt, size, quality, output_format, moderation, count, output, metadata, *images = sys.argv[1:]
+endpoint, model, prompt, size, quality, output_format, output_compression, moderation, count, output, metadata, *images = sys.argv[1:]
+multipart = {
+    "model": model,
+    "prompt": prompt,
+    "size": size,
+    "quality": quality,
+    "output_format": output_format,
+    "moderation": moderation,
+    "n": int(count),
+    "image[]": images,
+}
+if output_compression:
+    multipart["output_compression"] = int(output_compression)
 print(json.dumps({
     "endpoint": endpoint,
     "authorization": "Bearer ***",
-    "multipart": {
-        "model": model,
-        "prompt": prompt,
-        "size": size,
-        "quality": quality,
-        "output_format": output_format,
-        "moderation": moderation,
-        "n": int(count),
-        "image[]": images,
-    },
+    "multipart": multipart,
     "output": output,
     "count": int(count),
     "metadata": metadata or None,
@@ -338,6 +349,10 @@ curl_args=(
   --form-string "moderation=$moderation"
   --form-string "n=$count"
 )
+
+if [[ -n "$output_compression" ]]; then
+  curl_args+=(--form-string "output_compression=$output_compression")
+fi
 
 for image in "${resolved_images[@]}"; do
   curl_args+=(-F "image[]=@${image}")

@@ -12,6 +12,8 @@ Options:
   --size SIZE           auto or WIDTHxHEIGHT. Edges multiple of 16, max edge 3840, ratio <= 3:1
   --quality VALUE       Default: auto
   --format FORMAT       png, jpeg, or webp. Default: png
+  --output-compression N
+                        Compression level for jpeg/webp outputs, 0-100
   --moderation VALUE    Default: auto
   --background VALUE    Optional background value, for example transparent or auto
   --count N, --n N      Number of images to request in one API call. Default: 1, max: 10
@@ -37,6 +39,7 @@ output=""
 size="1024x1024"
 quality="auto"
 format="png"
+output_compression=""
 moderation="auto"
 background=""
 count="1"
@@ -56,6 +59,7 @@ while [[ $# -gt 0 ]]; do
     --size) size="${2:-}"; shift 2 ;;
     --quality) quality="${2:-}"; shift 2 ;;
     --format|--output-format) format="${2:-}"; shift 2 ;;
+    --output-compression) output_compression="${2:-}"; shift 2 ;;
     --moderation) moderation="${2:-}"; shift 2 ;;
     --background) background="${2:-}"; shift 2 ;;
     --count|--n) count="${2:-}"; shift 2 ;;
@@ -96,6 +100,10 @@ fi
 [[ "$format" =~ ^(png|jpeg|jpg|webp)$ ]] || die "--format must be png, jpeg, jpg, or webp."
 if [[ "$format" == "jpg" ]]; then
   format="jpeg"
+fi
+if [[ -n "$output_compression" ]]; then
+  [[ "$output_compression" =~ ^[0-9]+$ && "$output_compression" -ge 0 && "$output_compression" -le 100 ]] || die "--output-compression must be an integer between 0 and 100."
+  [[ "$format" == "jpeg" || "$format" == "webp" ]] || die "--output-compression is only supported for jpeg or webp output."
 fi
 [[ "$timeout" =~ ^[0-9]+$ && "$timeout" -gt 0 ]] || die "--timeout must be a positive integer."
 [[ "$count" =~ ^[0-9]+$ && "$count" -ge 1 && "$count" -le 10 ]] || die "--count/--n must be an integer between 1 and 10."
@@ -282,11 +290,11 @@ else
   endpoint="$route_base/v1/images/generations"
 fi
 
-payload="$(python3 - "$model" "$prompt" "$size" "$quality" "$format" "$moderation" "$background" "$count" <<'PY'
+payload="$(python3 - "$model" "$prompt" "$size" "$quality" "$format" "$output_compression" "$moderation" "$background" "$count" <<'PY'
 import json
 import sys
 
-model, prompt, size, quality, output_format, moderation, background, count = sys.argv[1:9]
+model, prompt, size, quality, output_format, output_compression, moderation, background, count = sys.argv[1:10]
 if output_format == "jpg":
     output_format = "jpeg"
 
@@ -301,6 +309,8 @@ payload = {
 }
 if background.strip():
     payload["background"] = background.strip()
+if output_compression.strip():
+    payload["output_compression"] = int(output_compression)
 print(json.dumps(payload, ensure_ascii=False))
 PY
 )"
